@@ -3,7 +3,10 @@ defineOptions({
   name: 'IndexPage',
 })
 
-const name = ref('')
+const name = ref('');
+
+
+
 
 const router = useRouter()
 function go() {

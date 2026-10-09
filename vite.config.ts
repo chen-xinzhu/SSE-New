@@ -1,70 +1,183 @@
-/// <reference types="vitest" />
+import { defineConfig } from 'vite'
+import path from 'path'
+import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
+import raw from 'vite-raw-plugin'
 
-import path from 'node:path'
-import Vue from '@vitejs/plugin-vue'
 import UnoCSS from 'unocss/vite'
+
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-import VueMacros from 'unplugin-vue-macros/vite'
-import { defineConfig } from 'vitest/config'
-import { VueRouterAutoImports } from 'vue-router/unplugin'
-import VueRouter from 'vue-router/vite'
+import Icons from 'unplugin-icons/vite'
+import IconsResolver from 'unplugin-icons/resolver'
 
-export default defineConfig({
-  resolve: {
-    alias: {
-      '~/': `${path.resolve(__dirname, 'src')}/`,
-    },
-  },
-  plugins: [
-    // https://github.com/vuejs/router/pull/2603
-    VueRouter({
-      dts: 'src/typed-router.d.ts',
-    }),
+import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
+import { loadEnv } from 'vite'
 
-    VueMacros({
-      defineOptions: false,
-      defineModels: false,
-      plugins: {
-        vue: Vue({
-          script: {
-            propsDestructure: true,
-            defineModel: true,
-          },
-        }),
-      },
-    }),
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd())
 
-    // https://github.com/antfu/unplugin-auto-import
-    AutoImport({
-      imports: [
-        'vue',
-        '@vueuse/core',
-        VueRouterAutoImports,
-        {
-          // add any other imports you were relying on
-          'vue-router/auto': ['useLink'],
+  return {
+    base: env.VITE_ROUTER_MODE === 'hash'
+      ? ''
+      : '/',
+    server: {
+      port: 3006,
+      proxy: {
+        '/spark': {
+          target: 'https://spark-api-open.xf-yun.com',
+          changeOrigin: true,
+          ws: true,
+          rewrite: (path) => path.replace(/^\/spark/, '')
         },
-      ],
-      dts: true,
-      dirs: [
-        './src/composables',
-      ],
-      vueTemplate: true,
-    }),
+        '/siliconflow': {
+          target: 'https://api.siliconflow.cn',
+          changeOrigin: true,
+          ws: true,
+          rewrite: (path) => path.replace(/^\/siliconflow/, '')
+        },
+        '/moonshot': {
+          target: 'https://api.moonshot.cn',
+          changeOrigin: true,
+          ws: true,
+          rewrite: (path) => path.replace(/^\/moonshot/, '')
+        },
+        '/deepseek': {
+          target: 'https://api.deepseek.com',
+          changeOrigin: true,
+          ws: true,
+          rewrite: (path) => path.replace(/^\/deepseek/, '')
+        }
+      }
+    },
+    plugins: [
+      UnoCSS(),
+      vue(),
+      raw({
+        fileRegex: /\.md$/
+      }),
+      vueJsx(),
+      AutoImport({
+        include: [
+          /\.[tj]sx?$/,
+          /\.vue\??/
+        ],
+        imports: [
+          'vue',
+          'vue-router',
+          '@vueuse/core',
+          {
+            'vue': [
+              'createVNode',
+              'render'
+            ],
+            'vue-router': [
+              'createRouter',
+              'createWebHistory',
+              'useRouter',
+              'useRoute'
+            ],
+            'uuid': [['v4', 'uuidv4']],
+            'lodash-es': [
+              ['*', '_']
+            ],
+            'naive-ui': [
+              'useDialog',
+              'useMessage',
+              'useNotification',
+              'useLoadingBar'
+            ]
+          },
+          {
+            from: 'vue',
+            imports: [
+              'App',
+              'VNode',
+              'ComponentInternalInstance',
+              'GlobalComponents',
+              'SetupContext',
+              'PropType'
+            ],
+            type: true
+          },
+          {
+            from: 'vue-router',
+            imports: [
+              'RouteRecordRaw',
+              'RouteLocationRaw'
+            ],
+            type: true
+          }
+        ],
+        resolvers:
+          mode === 'development'
+            ? []
+            : [NaiveUiResolver()],
+        dirs: [
+          './src/hooks',
+          './src/store/business',
+          './src/store/transform'
+        ],
+        dts: './auto-imports.d.ts',
+        eslintrc: {
+          enabled: true
+        },
+        vueTemplate: true
+      }),
+      Components({
+        directoryAsNamespace: true,
+        collapseSamePrefixes: true,
+        resolvers: [
+          IconsResolver({
+            prefix: 'auto-icon'
+          }),
+          NaiveUiResolver()
+        ]
+      }),
+      // Auto use Iconify icon
+      Icons({
+        autoInstall: true,
+        compiler: 'vue3',
+        scale: 1.2,
+        defaultStyle: '',
+        defaultClass: 'unplugin-icon',
+        jsx: 'react'
+      })
+    ],
+    resolve: {
+      extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.less', '.css'],
+      alias: [
+        {
+          find: '@',
+          replacement: path.resolve(__dirname, 'src')
+        }
+      ]
+    },
+    define: {
+      'process.env.VITE_ROUTER_MODE': JSON.stringify(env.VITE_ROUTER_MODE)
+    },
+    build: {
+      chunkSizeWarningLimit: 2500,
+      rollupOptions: {
+        onwarn(warning, defaultHandler) {
+          if (
+            warning.code === 'INVALID_ANNOTATION'
+            && warning.id?.includes('@vueuse/core')
+          ) {
+            return
+          }
 
-    // https://github.com/antfu/vite-plugin-components
-    Components({
-      dts: true,
-    }),
-
-    // https://github.com/antfu/unocss
-    // see uno.config.ts for config
-    UnoCSS(),
-  ],
-
-  // https://github.com/vitest-dev/vitest
-  test: {
-    environment: 'jsdom',
-  },
+          defaultHandler(warning)
+        }
+      }
+    },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern-compiler',
+          additionalData: `@use '@/styles/naive-variables.scss' as *;`
+        }
+      }
+    }
+  }
 })

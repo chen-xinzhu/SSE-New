@@ -1,44 +1,50 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "declaration": false,
+    "noImplicitAny": false,
+    "removeComments": true,
+    "noLib": false,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "target": "esnext",
+    "useDefineForClassFields": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
     "jsx": "preserve",
-    "lib": [
-      "DOM",
-      "ESNext"
-    ],
-    "baseUrl": ".",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "paths": {
-      "~/*": [
-        "src/*"
-      ]
-    },
+    "sourceMap": true,
     "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "lib": [
+      "esnext",
+      "dom"
+    ],
     "types": [
       "vite/client",
-      "unplugin-vue-macros/macros-global"
+      "node",
+      "naive-ui/volar"
     ],
-    "allowJs": true,
-    "strict": true,
-    "strictNullChecks": true,
-    "noUnusedLocals": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "baseUrl": "./",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    }
   },
   "include": [
     "src/**/*.ts",
+    "src/**/*.md",
     "src/**/*.d.ts",
+    "src/**/*.tsx",
     "src/**/*.vue",
-    "auto-imports.d.ts",
-    "components.d.ts",
-    "shims.d.ts"
+    "__tests__/**/*.ts",
+    "./auto-imports.d.ts",
+    "./components.d.ts",
+    "./components-instance.d.ts"
   ],
   "exclude": [
-    "dist",
-    "node_modules",
-    "eslint.config.js"
+    "node_modules"
   ]
 }

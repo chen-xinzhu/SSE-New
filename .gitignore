@@ -1,3 +1,5 @@
+.env
+.env.template
 .DS_Store
 .vite-ssg-dist
 .vite-ssg-temp
@@ -7,3 +9,4 @@ dist-ssr
 node_modules
 .idea/
 *.log
+git reset origin/main
