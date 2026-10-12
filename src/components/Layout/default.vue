@@ -1,5 +1,11 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+defineOptions({
+  name: 'LayoutDefault'
+})
+</script>
 
 <template>
-  <div class="layout">布局</div>
+  <router-view v-slot="{ Component }">
+    <Component :is="Component" />
+  </router-view>
 </template>

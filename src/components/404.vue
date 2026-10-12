@@ -5,14 +5,14 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="w-full h-full flex item-center justify-center">
+  <div class="w-full h-full flex items-center justify-center">
     <n-result
       status="404"
       title="404 你什么也找不到"
       description="生活总归带点荒谬"
     >
       <template #footer>
-        <n-button>找点乐子吧</n-button>
+        <n-button @click="$router.replace('/')">找点乐子吧</n-button>
       </template>
     </n-result>
   </div>

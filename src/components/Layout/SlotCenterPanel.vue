@@ -1,0 +1,67 @@
+<script lang="ts" setup>
+interface Props {
+  loading?: boolean
+}
+
+const { loading = false } = defineProps<Props>()
+</script>
+
+<template>
+  <LayoutSlotFrame class="bg-no-repeat bg-cover bg-center">
+    <template #center>
+      <div
+        class="panel-shadow"
+        flex
+        w-full
+        h-full
+        overflow-hidden
+        item-center
+      >
+        <n-spin
+          :show="loading"
+          w-full
+          h-full
+          content-class="w-full h-full flex"
+          :rotate="false"
+          class="center-panel-spin"
+          :style="{
+            '--n-opacity-spinning': '0'
+          }"
+        >
+          <template #icon>
+            <div class="i-svg-spinners:pulse-3"></div>
+          </template>
+          <section
+            v-if="$slots.left"
+            flex="~ col"
+            w-300
+            h-full
+            overflow-hidden
+          >
+            <slot name="left"></slot>
+          </section>
+          <section
+            flex="1"
+            h-full
+            overflow-hidden
+          >
+            <slot name="default"></slot>
+          </section>
+        </n-spin>
+      </div>
+    </template>
+    <template #bottom>
+      <NavigationNavFooter />
+    </template>
+  </LayoutSlotFrame>
+</template>
+
+<style lang="scss" scoped>
+.panel-shadow {
+  box-shadow: var(--center-panel-shadow, 0 1px 4px rgb(0 0 0 / 6%));
+}
+
+.center-panel-spin {
+  background: var(--center-panel-background, #fefbff);
+}
+</style>

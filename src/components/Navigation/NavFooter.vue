@@ -1,0 +1,69 @@
+<script lang="ts" setup>
+withDefaults(
+  defineProps<{
+    showBorder?: boolean
+  }>(),
+  {
+    showBorder: false
+  }
+)
+
+const link = ref('https://github.com/pdsuwwz')
+</script>
+
+<template>
+  <footer class="footer">
+    <div class="container">
+      <p
+        class="text"
+      >
+        <NavigationNavOctocat />
+        MIT Licensed | Copyright © 2020-PRESENT <a
+          target="_blank"
+          :href="link"
+          class="github-link c-#555 dark:c-#fff b-b b-b-solid b-b-#3c3c43:12 dark:b-b-#666:12"
+        >
+          Wisdom
+        </a>
+      </p>
+    </div>
+  </footer>
+</template>
+
+<style lang="scss" scoped>
+.footer {
+  margin: 0 auto;
+  width: 100%;
+  border-top: 1px solid var(--footer-border-color, transparent);
+
+  --at-apply: select-none;
+  --at-apply: flex justify-center;
+
+  background: var(--footer-background, #fefbff);
+
+  .container {
+    padding: var(--footer-padding, 14px 0);
+
+    .text {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 0;
+      text-align: center;
+      line-height: 1;
+      font-size: var(--footer-font-size, 1em);
+      color: var(--footer-text-color, #929292);
+    }
+  }
+}
+
+.github-link {
+  transition: border 0.3s ease-in-out;
+  margin-left: 6px;
+
+  &:hover {
+    border-color: #7d7d7d;
+  }
+}
+</style>
