@@ -8,6 +8,35 @@
       v-if="$slots.sidebar"
       #left
     >
+      <div
+        min-h-0
+        flex="1 ~ col"
+        :class="[
+          'select-none',
+          'bg-no-repeat bg-cover bg-right',
+          'bg-bgcolor'
+        ]"
+      >
+        <div
+          v-if="$slots['sidebar-header']"
+          py="2px"
+        >
+          <slot name="sidebar-header"></slot>
+        </div>
+        <div
+          flex="1"
+          p="20px"
+          overflow-y-auto
+        >
+          <slot name="sidebar"></slot>
+        </div>
+        <div
+          py="14px"
+          px="20px"
+        >
+          <slot name="sidebar-action"></slot>
+        </div>
+      </div>
     </template>
     <div
       h-full
@@ -17,3 +46,9 @@
     </div>
   </LayoutSlotCenterPanel>
 </template>
+
+<style lang="scss" scoped>
+.center-panel-surface {
+  background: var(--center-panel-background, #fefbff);
+}
+</style>

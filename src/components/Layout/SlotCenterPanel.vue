@@ -15,7 +15,7 @@ const { loading = false } = defineProps<Props>()
         w-full
         h-full
         overflow-hidden
-        item-center
+        items-center
       >
         <n-spin
           :show="loading"
