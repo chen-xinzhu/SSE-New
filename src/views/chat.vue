@@ -1,10 +1,33 @@
 <script setup lang="ts">
+import { defaultMockModelName, modelMappingList } from '@/components/MarkdownPreview/models'
+import type { SelectBaseOption } from 'naive-ui/es/select/src/interface'
 import { systemTitle } from '@/base'
+import { isGithubDeployed } from '@/config'
+
 const loading = ref(true)
 
 setTimeout(() => {
   loading.value = false
 }, 700)
+
+
+const stylizingLoading = ref(false)
+
+const modelListSelections = computed(() => {
+  return modelMappingList.map<SelectBaseOption>((modelItem) => {
+    let disabled = false
+    if (isGithubDeployed && modelItem.modelName !== defaultMockModelName) {
+      disabled = true
+    }
+
+    return {
+      label: modelItem.label,
+      value: modelItem.modelName,
+      // Github 演示环境禁用模型切换，拉取代码后可按自己需求修改
+      disabled
+    }
+  })
+})
 </script>
 
 <template>
@@ -30,6 +53,13 @@ setTimeout(() => {
 
         <div class="chat-toolbar-actions">
           <span class="chat-model-label">当前模型</span>
+          <n-select
+            v-model:value="businessStore.systemModelName"
+            class="chat-model-select"
+            placeholder="请选择模型"
+            :disabled="stylizingLoading"
+            :options="modelListSelections"
+          />
         </div>
       </header>
     </div>
