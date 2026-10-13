@@ -148,6 +148,7 @@ declare global {
   const useBreakpoints: typeof import('@vueuse/core').useBreakpoints
   const useBroadcastChannel: typeof import('@vueuse/core').useBroadcastChannel
   const useBrowserLocation: typeof import('@vueuse/core').useBrowserLocation
+  const useBusinessStore: typeof import('./src/store/business/index').useBusinessStore
   const useCached: typeof import('@vueuse/core').useCached
   const useClipboard: typeof import('@vueuse/core').useClipboard
   const useClipboardItems: typeof import('@vueuse/core').useClipboardItems
@@ -327,6 +328,9 @@ declare global {
   // @ts-ignore
   export type { RouteRecordRaw, RouteLocationRaw } from 'vue-router'
   import('vue-router')
+  // @ts-ignore
+  export type { BusinessState } from './src/store/business/index'
+  import('./src/store/business/index')
 }
 
 // for vue template auto import
@@ -468,6 +472,7 @@ declare module 'vue' {
     readonly useBreakpoints: UnwrapRef<typeof import('@vueuse/core')['useBreakpoints']>
     readonly useBroadcastChannel: UnwrapRef<typeof import('@vueuse/core')['useBroadcastChannel']>
     readonly useBrowserLocation: UnwrapRef<typeof import('@vueuse/core')['useBrowserLocation']>
+    readonly useBusinessStore: UnwrapRef<typeof import('./src/store/business/index')['useBusinessStore']>
     readonly useCached: UnwrapRef<typeof import('@vueuse/core')['useCached']>
     readonly useClipboard: UnwrapRef<typeof import('@vueuse/core')['useClipboard']>
     readonly useClipboardItems: UnwrapRef<typeof import('@vueuse/core')['useClipboardItems']>

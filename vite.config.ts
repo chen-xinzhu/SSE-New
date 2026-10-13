@@ -24,6 +24,12 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3006,
       proxy: {
+        // 新增：Gemini 的 OpenAI 兼容接口代理
+        '/gemini': {
+          target: 'https://generativelanguage.googleapis.com/v1beta/openai',
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/gemini/, '')
+        },
         '/spark': {
           target: 'https://spark-api-open.xf-yun.com',
           changeOrigin: true,

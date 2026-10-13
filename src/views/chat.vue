@@ -28,6 +28,8 @@ const modelListSelections = computed(() => {
     }
   })
 })
+
+const businessStore = useBusinessStore()
 </script>
 
 <template>

@@ -1,6 +1,7 @@
 {
   "globals": {
     "App": true,
+    "BusinessState": true,
     "Component": true,
     "ComponentInternalInstance": true,
     "ComponentPublicInstance": true,
@@ -157,6 +158,7 @@
     "useBreakpoints": true,
     "useBroadcastChannel": true,
     "useBrowserLocation": true,
+    "useBusinessStore": true,
     "useCached": true,
     "useClipboard": true,
     "useClipboardItems": true,

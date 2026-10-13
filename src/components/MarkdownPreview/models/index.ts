@@ -241,6 +241,50 @@ export const modelMappingList: TypesModelLLM[] = [
     }
   },
   {
+    label: '♊ Gemini 3.8 Flash',
+    modelName: 'gemini-3.8-flash',
+    transformStreamValue(readValue) {
+      const stream = transformStreamThinkData(readValue)
+      if (stream.done) {
+        return {
+          done: true
+        }
+      }
+      if (stream.isWaitQueuing) {
+        return {
+          isWaitQueuing: stream.isWaitQueuing
+        }
+      }
+      return {
+        content: stream.content
+      }
+    },
+    // Event Stream 调用 Google Gemini 接口 (通过 Vite Proxy 代理转发)
+    chatFetch(text) {
+      const url = new URL(`${ location.origin }/gemini/chat/completions`)
+
+      const req = new Request(url, {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${ import.meta.env.VITE_GEMINI_KEY }`
+        },
+        body: JSON.stringify({
+          // 可选：'gemini-2.0-flash' 或 'gemini-1.5-flash'
+          model: 'gemini-2.0-flash',
+          stream: true,
+          messages: [
+            {
+              role: 'user',
+              content: text
+            }
+          ]
+        })
+      })
+      return fetch(req)
+    }
+  },
+  {
     label: '🐋 DeepSeek-V4',
     modelName: 'deepseek-v4',
     transformStreamValue(readValue) {
