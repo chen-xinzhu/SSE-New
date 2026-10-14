@@ -62,8 +62,48 @@ const businessStore = useBusinessStore()
             :disabled="stylizingLoading"
             :options="modelListSelections"
           />
+          <CustomTooltip>
+            <template #trigger>
+              <button
+                type="button"
+                class="chat-help-button"
+                aria-label="查看模型使用说明"
+              >
+                <span
+                  class="i-lucide:circle-help"
+                  aria-hidden="true"
+                ></span>
+              </button>
+            </template>
+
+            <!-- tooltip 内容 -->
+            <div>注意：</div>
+            <div>演示环境仅支持 “模拟数据模型”</div>
+            <div>
+              如需测试其他模型请克隆<a
+                href="https://github.com/pdsuwwz/chatgpt-vue3-light-mvp"
+                target="_blank"
+                rel="noreferrer"
+                class="repo-help-link"
+              >本仓库</a>到本地运行
+            </div>
+          </CustomTooltip>
         </div>
       </header>
+
+      <main class="chat-response-region"></main>
+
+      <section
+        class="chat-composer-zone"
+        aria-label="消息输入"
+      >
+        <div class="chat-composer-inner">
+          <div
+            class="prompt-suggestions"
+            aria-label="建议问题"
+          ></div>
+        </div>
+      </section>
     </div>
   </LayoutCenterPanel>
 </template>
@@ -155,5 +195,77 @@ const businessStore = useBusinessStore()
   margin-right: 2px;
   color: var(--chat-muted);
   font-size: 13px;
+}
+
+.chat-model-select {
+  width: 252px;
+  :deep(.n-base-selection) {
+    --n-border-radius: 7px !important;
+    --n-border: 1px solid var(--chat-border) !important;
+    --n-border-hover: 1px solid var(--chat-border-strong) !important;
+    --n-border-active: 1px solid var(--chat-accent) !important;
+    --n-box-shadow-active: 0 0 0 2px rgb(89 107 71 / 12%) !important;
+    --n-box-shadow-focus: 0 0 0 2px rgb(89 107 71 / 12%) !important;
+    --n-color: var(--chat-surface) !important;
+    --n-text-color: var(--chat-text) !important;
+    min-height: 36px;
+    font-size: 13px;
+  }
+}
+
+.chat-help-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  color: var(--chat-muted);
+  font-size: 18px;
+  cursor: help;
+  background: transparent;
+  transition: color 150ms ease, background-color 150ms ease;
+
+  &:hover {
+    color: var(--chat-text);
+    background: #eeeeea;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgb(89 107 71 / 38%);
+    outline-offset: 1px;
+  }
+}
+
+.repo-help-link {
+  padding: 0 2px;
+  color: #d5e7c2;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: #b9d29f;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  transition: color 150ms ease, text-decoration-color 150ms ease;
+
+  &:hover,
+  &:focus-visible {
+    color: #fff;
+    text-decoration-color: #fff;
+  }
+}
+
+.chat-response-region {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chat-composer-zone {
+  min-width: 0;
+  padding: 8px 24px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid #e8e8e3;
+  background: var(--chat-background);
 }
 </style>
