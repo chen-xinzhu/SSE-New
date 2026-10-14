@@ -1,8 +1,9 @@
-<script setup lang="ts">
+<script setup lang="tsx">
 import { defaultMockModelName, modelMappingList } from '@/components/MarkdownPreview/models'
 import type { SelectBaseOption } from 'naive-ui/es/select/src/interface'
 import { systemTitle } from '@/base'
 import { isGithubDeployed } from '@/config'
+import type { InputInst } from 'naive-ui'
 
 const loading = ref(true)
 
@@ -35,7 +36,7 @@ const businessStore = useBusinessStore()
  * 输入字符串
  */
 const inputTextString = ref('')
-
+const refInputTextString = ref<InputInst | null>()
 /**
  * 输出字符串 Reader 流（风格化的）
  */
@@ -47,6 +48,51 @@ const placeholder = computed(() => {
     return '正在生成回答...'
   }
   return '输入任意问题...'
+})
+
+const promptTextList = ref([
+  '打个招呼吧，并告诉我你的名字',
+  '使用中文，回答以下两个问题，分段表示\n1、你是什么模型？\n2、请分别使用 Vue3 和 React 编写一个 Button 组件，要求在 Vue3 中使用 Setup Composition API 语法糖，在 React 中使用 TSX 语法'
+])
+
+const PromptTag = defineComponent({
+  props: {
+    text: {
+      type: String,
+      default: ''
+    }
+  },
+  setup(props) {
+    const handleClick = () => {
+      inputTextString.value = props.text
+      nextTick(() => {
+        refInputTextString.value?.focus()
+      })
+    }
+    return () => (
+      <button
+        type="button"
+        class="prompt-suggestion"
+        aria-label={ `使用建议：${ props.text }` }
+        onClick={handleClick}
+      >
+        <span class="prompt-suggestion-icon i-lucide:corner-down-right" aria-hidden="true"></span>
+        <n-ellipsis
+          tooltip={{
+            contentClass: 'wrapper-tooltip-scroller',
+            keepAliveOnHover: true
+          }}
+        >
+          {{
+            tooltip: () => props.text,
+            default: () => props.text
+          }}
+        </n-ellipsis>
+      </button>
+
+    )
+
+  }
 })
 
 </script>
@@ -120,10 +166,17 @@ const placeholder = computed(() => {
           <div
             class="prompt-suggestions"
             aria-label="建议问题"
-          ></div>
+          >
+            <PromptTag
+              v-for="(textItem, idx) in promptTextList"
+              :key="idx"
+              :text="textItem"
+            />
+          </div>
 
           <div class="chat-composer-editor">
             <n-input
+              ref="refInputTextString"
               v-model:value="inputTextString"
               type="textarea"
               :placeholder="placeholder"
