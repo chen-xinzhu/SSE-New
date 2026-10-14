@@ -30,6 +30,25 @@ const modelListSelections = computed(() => {
 })
 
 const businessStore = useBusinessStore()
+
+/**
+ * 输入字符串
+ */
+const inputTextString = ref('')
+
+/**
+ * 输出字符串 Reader 流（风格化的）
+ */
+const outputTextReader = ref<ReadableStreamDefaultReader | null>()
+
+
+const placeholder = computed(() => {
+  if (stylizingLoading.value) {
+    return '正在生成回答...'
+  }
+  return '输入任意问题...'
+})
+
 </script>
 
 <template>
@@ -102,6 +121,51 @@ const businessStore = useBusinessStore()
             class="prompt-suggestions"
             aria-label="建议问题"
           ></div>
+
+          <div class="chat-composer-editor">
+            <n-input
+              v-model:value="inputTextString"
+              type="textarea"
+              :placeholder="placeholder"
+              autofocus
+              class="chat-textarea textarea-resize-none"
+              :style="{
+                '--n-border-radius': '8px',
+                '--n-padding-left': '16px',
+                '--n-padding-right': '64px',
+                '--n-padding-vertical': '9px',
+                '--n-color': 'transparent',
+                '--n-color-focus': 'transparent',
+                '--n-border': 'none',
+                '--n-border-hover': 'none',
+                '--n-border-focus': 'none',
+                '--n-box-shadow-focus': 'none',
+                '--n-placeholder-color': '#8a8b86',
+                '--n-text-color': '#20201e',
+              }"
+            />
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button
+                  class="chat-submit-button"
+                  :class="{'is-stopping':stylizingLoading}"
+                  :aria-label="stylizingLoading ? '停止生成' : '发送消息'"
+                >
+                  <span
+                    v-if="stylizingLoading"
+                    class="i-lucide:square"
+                    aria-hidden="true"
+                  ></span>
+                  <span
+                    v-else
+                    class="i-lucide:arrow-up"
+                    aria-hidden="true"
+                  ></span>
+                </n-button>
+              </template>
+              {{ stylizingLoading ? '停止生成' : '发送消息' }}
+            </n-tooltip>
+          </div>
         </div>
       </section>
     </div>
@@ -267,5 +331,129 @@ const businessStore = useBusinessStore()
   padding: 8px 24px calc(10px + env(safe-area-inset-bottom));
   border-top: 1px solid #e8e8e3;
   background: var(--chat-background);
+}
+
+.chat-composer-inner {
+  width: min(100%, 860px);
+  margin: 0 auto;
+}
+
+.prompt-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  margin-bottom: 6px;
+}
+
+:deep(.prompt-suggestion) {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 320px;
+  height: 32px;
+  padding: 0 10px;
+  overflow: hidden;
+  border: 1px solid var(--chat-border);
+  border-radius: 6px;
+  color: #555650;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
+
+  &:hover {
+    border-color: var(--chat-border-strong);
+    color: var(--chat-text);
+    background: #eeeeea;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgb(89 107 71 / 38%);
+    outline-offset: 1px;
+  }
+}
+
+:deep(.prompt-suggestion-icon) {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  color: #858680;
+}
+
+.chat-composer-editor {
+  position: relative;
+  min-height: 64px;
+  overflow: hidden;
+  border: 1px solid #d6d6d1;
+  border-radius: 10px;
+  background: var(--chat-surface);
+  box-shadow: 0 1px 2px rgb(32 32 30 / 5%);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+
+  &:focus-within {
+    border-color: var(--chat-accent);
+    box-shadow: 0 0 0 2px rgb(89 107 71 / 12%);
+  }
+}
+
+.chat-textarea {
+  width: 100%;
+  height: 64px;
+  font-size: 15px;
+  line-height: 1.55;
+
+  :deep(.n-input-wrapper),
+  :deep(.n-input__textarea) {
+    height: 100%;
+  }
+}
+
+.chat-submit-button {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 18px;
+  background: var(--chat-accent);
+  transition: background-color 150ms ease, opacity 150ms ease;
+
+  &:hover,
+  &:focus {
+    color: #fff;
+    background: var(--chat-accent-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgb(89 107 71 / 42%);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    background: #435136;
+  }
+
+  &.is-stopping {
+    background: #33342f;
+
+    &:hover,
+    &:focus {
+      background: #20211e;
+    }
+  }
+
+  :deep(.n-button__content) {
+    width: 18px;
+    height: 18px;
+  }
 }
 </style>
