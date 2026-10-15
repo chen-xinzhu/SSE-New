@@ -319,7 +319,7 @@ export const modelMappingList: TypesModelLLM[] = [
           'Authorization': `Bearer ${ import.meta.env.VITE_DEEPSEEK_KEY }`
         },
         body: JSON.stringify({
-          // 普通模型 V3
+          // 普通模型 V4
           'model': 'deepseek-chat',
           stream: true,
           messages: [

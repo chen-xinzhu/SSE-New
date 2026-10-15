@@ -42,6 +42,7 @@ const refInputTextString = ref<InputInst | null>()
  */
 const outputTextReader = ref<ReadableStreamDefaultReader | null>()
 
+const refReaderMarkdownPreview = ref<any>()
 
 const placeholder = computed(() => {
   if (stylizingLoading.value) {
@@ -49,6 +50,7 @@ const placeholder = computed(() => {
   }
   return '输入任意问题...'
 })
+
 
 const promptTextList = ref([
   '打个招呼吧，并告诉我你的名字',
@@ -156,7 +158,15 @@ const PromptTag = defineComponent({
         </div>
       </header>
 
-      <main class="chat-response-region"></main>
+      <main class="chat-response-region">
+        <MarkdownPreview
+          ref="refReaderMarkdownPreview"
+          v-model:reader="outputTextReader"
+          content-class="chat-markdown-surface"
+          :model="businessStore.currentModelItem?.modelName"
+          :transform-stream-fn="businessStore.currentModelItem?.transformStreamValue"
+        />
+      </main>
 
       <section
         class="chat-composer-zone"
@@ -507,6 +517,240 @@ const PromptTag = defineComponent({
   :deep(.n-button__content) {
     width: 18px;
     height: 18px;
+  }
+}
+
+:deep(.chat-markdown-surface) {
+  background: transparent;
+}
+
+:deep(.chat-markdown-surface .markdown-content-scroller) {
+  padding: 36px 24px 48px;
+  scrollbar-color: #c9cac3 transparent;
+  scrollbar-width: thin;
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper) {
+  width: min(100%, 820px);
+  margin: 0 auto;
+  color: #2b2c28;
+  font-size: 15px;
+  line-height: 1.72;
+}
+
+:deep(.chat-markdown-surface .markdown-stream-status) {
+  display: flex;
+  align-items: center;
+  width: min(100%, 820px);
+  min-height: 32px;
+  margin: 8px auto 0;
+  color: var(--chat-accent);
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper h1),
+:deep(.chat-markdown-surface .markdown-wrapper h2),
+:deep(.chat-markdown-surface .markdown-wrapper h3),
+:deep(.chat-markdown-surface .markdown-wrapper h4),
+:deep(.chat-markdown-surface .markdown-wrapper h5),
+:deep(.chat-markdown-surface .markdown-wrapper h6) {
+  margin: 1.6em 0 0.65em;
+  color: #20201e;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper h1) {
+  font-size: 24px;
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper h2) {
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e3e3de;
+  font-size: 20px;
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper h3) {
+  font-size: 17px;
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper p) {
+  margin: 0.8em 0;
+  line-height: 1.72;
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper ul),
+:deep(.chat-markdown-surface .markdown-wrapper ol) {
+  padding-left: 1.5em;
+  line-height: 1.65;
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper a) {
+  padding: 0;
+  color: #4f623e;
+  font-weight: 600;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper blockquote) {
+  margin: 18px 0;
+  padding: 2px 0 2px 16px;
+  border-left: 3px solid #aeb7a5;
+  color: #5e605a;
+  background: transparent;
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper p > code),
+:deep(.chat-markdown-surface .markdown-wrapper li > code) {
+  padding: 2px 5px;
+  border: 1px solid #dfdfda;
+  border-radius: 4px;
+  color: #353630;
+  background: #efefeb;
+}
+
+:deep(.chat-markdown-surface .markdown-code-wrapper) {
+  margin: 16px 0;
+  border: 1px solid #ddddda;
+  border-radius: 8px;
+  background: #f1f1ee;
+}
+
+:deep(.chat-markdown-surface .markdown-code-header) {
+  min-height: 38px;
+  border-color: #ddddda;
+}
+
+:deep(.chat-markdown-surface .markdown-code-lang) {
+  color: #6f706b;
+  font-size: 12px;
+}
+
+:deep(.chat-markdown-surface .markdown-code-copy) {
+  min-width: 40px;
+  min-height: 38px;
+  color: #666761;
+  transition: color 150ms ease, background-color 150ms ease;
+
+  &:hover {
+    color: #20201e;
+    background: #e7e7e2;
+  }
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper table) {
+  width: max-content;
+  max-width: 100%;
+  border: 1px solid #ddddda;
+  border-radius: 6px;
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper th),
+:deep(.chat-markdown-surface .markdown-wrapper td) {
+  padding: 8px 10px;
+  border-color: #ddddda;
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper th) {
+  background: #efefeb;
+}
+
+:deep(.chat-markdown-surface .markdown-wrapper tr:nth-child(even)),
+:deep(.chat-markdown-surface .markdown-wrapper tr:hover) {
+  background: transparent;
+}
+
+:deep(.chat-markdown-surface .markdown-empty-state),
+:deep(.chat-markdown-surface .n-empty) {
+  color: var(--chat-muted);
+  font-weight: 500;
+}
+
+:deep(.chat-markdown-surface .n-empty__icon) {
+  color: #7a8870;
+}
+
+:deep(.chat-markdown-surface .markdown-copy-action) {
+  top: 20px !important;
+  right: max(24px, calc((100% - 820px) / 2)) !important;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--chat-border);
+  color: var(--chat-muted);
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 1px 3px rgb(32 32 30 / 6%);
+}
+
+@media (width <= 640px) {
+
+  .chat-workspace {
+    grid-template-rows: 52px minmax(0, 1fr) auto;
+  }
+
+  .chat-toolbar {
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  .chat-brand-title,
+  .chat-model-label {
+    display: none;
+  }
+
+  .chat-model-select {
+    width: min(47vw, 180px);
+  }
+
+  .chat-help-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .chat-composer-zone {
+    padding: 7px 12px calc(8px + env(safe-area-inset-bottom));
+  }
+
+  .prompt-suggestions {
+    flex-wrap: nowrap;
+    margin-right: -12px;
+    padding-right: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  :deep(.prompt-suggestion) {
+    flex: 0 0 auto;
+    max-width: min(78vw, 280px);
+  }
+
+  .chat-composer-editor {
+    min-height: 60px;
+  }
+
+  .chat-textarea {
+    height: 60px;
+  }
+
+  .chat-submit-button {
+    bottom: 10px;
+  }
+
+  :deep(.chat-markdown-surface .markdown-content-scroller) {
+    padding: 24px 16px 36px;
+  }
+
+  :deep(.chat-markdown-surface .markdown-wrapper) {
+    font-size: 14px;
+    line-height: 1.68;
+  }
+
+  :deep(.chat-markdown-surface .markdown-copy-action) {
+    top: 12px !important;
+    right: 12px !important;
   }
 }
 </style>
