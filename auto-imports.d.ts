@@ -150,6 +150,7 @@ declare global {
   const useBrowserLocation: typeof import('@vueuse/core').useBrowserLocation
   const useBusinessStore: typeof import('./src/store/business/index').useBusinessStore
   const useCached: typeof import('@vueuse/core').useCached
+  const useClipText: typeof import('./src/hooks/useClipText').useClipText
   const useClipboard: typeof import('@vueuse/core').useClipboard
   const useClipboardItems: typeof import('@vueuse/core').useClipboardItems
   const useCloned: typeof import('@vueuse/core').useCloned
@@ -474,6 +475,7 @@ declare module 'vue' {
     readonly useBrowserLocation: UnwrapRef<typeof import('@vueuse/core')['useBrowserLocation']>
     readonly useBusinessStore: UnwrapRef<typeof import('./src/store/business/index')['useBusinessStore']>
     readonly useCached: UnwrapRef<typeof import('@vueuse/core')['useCached']>
+    readonly useClipText: UnwrapRef<typeof import('./src/hooks/useClipText')['useClipText']>
     readonly useClipboard: UnwrapRef<typeof import('@vueuse/core')['useClipboard']>
     readonly useClipboardItems: UnwrapRef<typeof import('@vueuse/core')['useClipboardItems']>
     readonly useCloned: UnwrapRef<typeof import('@vueuse/core')['useCloned']>
