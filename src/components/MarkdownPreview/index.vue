@@ -165,6 +165,7 @@ const emptyPlaceholder = computed(() => {
     <template #icon>
       <div class="i-svg-spinners:3-dots-rotate"></div>
     </template>
+    
   </n-spin>
 </template>
 
