@@ -1,5 +1,5 @@
 <script setup lang="tsx">
-import { defaultMockModelName, modelMappingList } from '@/components/MarkdownPreview/models'
+import { defaultMockModelName, modelMappingList, triggerModelTermination } from '@/components/MarkdownPreview/models'
 import type { SelectBaseOption } from 'naive-ui/es/select/src/interface'
 import { systemTitle } from '@/base'
 import { isGithubDeployed } from '@/config'
@@ -43,6 +43,67 @@ const refInputTextString = ref<InputInst | null>()
 const outputTextReader = ref<ReadableStreamDefaultReader | null>()
 
 const refReaderMarkdownPreview = ref<any>()
+
+const onFailedReader = ()=>{
+  stylizingLoading.value = false
+  outputTextReader.value = null
+  if (refReaderMarkdownPreview.value) {
+    refReaderMarkdownPreview.value.initializeEnd()
+  }
+  window.$ModalMessage.error('转换失败, 请重试')
+  setTimeout(() => {
+    if(refInputTextString.value) {
+      refInputTextString.value.focus()
+    }
+  })
+  triggerModelTermination()
+}
+
+const onCompletedReader = () => {
+  stylizingLoading.value = false
+  setTimeout(() => {
+    if (refInputTextString.value) {
+      refInputTextString.value.focus()
+    }
+  })
+  triggerModelTermination()
+}
+
+const handleCreateStylized = async () => {
+  // 若正在加载，则点击后恢复初始状态
+  if (stylizingLoading.value) {
+    refReaderMarkdownPreview.value.abortReader()
+    onCompletedReader()
+    return
+  }
+
+
+  if (refInputTextString.value && !inputTextString.value.trim()) {
+    inputTextString.value = ''
+    refInputTextString.value.focus()
+    return
+  }
+
+  refReaderMarkdownPreview.value.resetStatus()
+  refReaderMarkdownPreview.value.initializeStart()
+
+  stylizingLoading.value = true
+  const textContent = inputTextString.value
+  inputTextString.value = ''
+  const { error, reader } = await businessStore.createAssistantWriterStylized({
+    text: textContent
+  })
+
+  if (error) {
+    onFailedReader()
+    return
+  }
+
+  if (reader) {
+    outputTextReader.value = reader
+  }
+}
+
 
 const placeholder = computed(() => {
   if (stylizingLoading.value) {
@@ -91,9 +152,7 @@ const PromptTag = defineComponent({
           }}
         </n-ellipsis>
       </button>
-
     )
-
   }
 })
 
@@ -165,6 +224,7 @@ const PromptTag = defineComponent({
           content-class="chat-markdown-surface"
           :model="businessStore.currentModelItem?.modelName"
           :transform-stream-fn="businessStore.currentModelItem?.transformStreamValue"
+          :failed="onFailedReader"
         />
       </main>
 
@@ -213,6 +273,7 @@ const PromptTag = defineComponent({
                   class="chat-submit-button"
                   :class="{'is-stopping':stylizingLoading}"
                   :aria-label="stylizingLoading ? '停止生成' : '发送消息'"
+                  @click.stop="handleCreateStylized()"
                 >
                   <span
                     v-if="stylizingLoading"

@@ -25,6 +25,8 @@ const isAbort = ref(false)
 
 const isCompleted = ref(false)
 
+const emit = defineEmits(['failed'])
+
 // 接口响应是否正在排队等待
 const waitingForQueue = ref(false)
 
@@ -54,6 +56,7 @@ const WaitTextRender = defineComponent({
     }
   }
 })
+
 
 </script>
 
