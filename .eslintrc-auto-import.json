@@ -160,6 +160,7 @@
     "useBrowserLocation": true,
     "useBusinessStore": true,
     "useCached": true,
+    "useClipText": true,
     "useClipboard": true,
     "useClipboardItems": true,
     "useCloned": true,
