@@ -1,6 +1,6 @@
 <script setup lang="tsx">
+import { renderMarkdownText } from './plugins/markdown'
 import type { CrossTransformFunction, TransformFunction } from './models'
-import { sleep } from '@/utils/request'
 import { defaultMockModelName } from './models'
 
 interface Props {
@@ -29,7 +29,30 @@ const isAbort = ref(false)
 
 const isCompleted = ref(false)
 
-const emit = defineEmits(['failed'])
+const emit = defineEmits([
+  'failed',
+  'completed',
+  'updated:reader'
+])
+
+
+const refWrapperContent = ref<HTMLElement>()
+
+const typingAnimationFrame: number | null = null
+
+
+/**
+ * 渲染后的Markdown内容
+ */
+const renderedMarkdown = computed(() => {
+  return renderMarkdownText(displayText.value)
+})
+
+const renderedContent = computed(() => {
+  // 在 renderedMarkdown 末尾插入光标标记
+  return `${ renderedMarkdown.value }`
+})
+
 
 // 接口响应是否正在排队等待
 const waitingForQueue = ref(false)
@@ -61,6 +84,7 @@ const WaitTextRender = defineComponent({
   }
 })
 
+
 /**
  * 检查是否有实际内容
  */
@@ -78,39 +102,35 @@ const showCopy = computed(() => {
   return false
 })
 
+
 /**
  * 是否初始化
  */
 const initialized = ref(false)
-
 const initializeStart = () => {
   initialized.value = true
 }
-
 const initializeEnd = () => {
   initialized.value = false
 }
 
+
 /**
  * n-spin是否显示整个main加载
  */
-
 const showLoading = computed(() => {
   if (initialized.value) {
     return true
   }
-
   if (!props.reader) {
     return false
   }
-
   if (!readerLoading) {
     return false
   }
   if (displayText.value) {
     return false
   }
-
   return false
 })
 
@@ -147,7 +167,7 @@ const emptyPlaceholder = computed(() => {
   >
     <transition name="fade">
       <n-float-button
-        v-if="true"
+        v-if="showCopy"
         position="absolute"
         :top="30"
         :right="30"
@@ -167,6 +187,59 @@ const emptyPlaceholder = computed(() => {
     <template #icon>
       <div class="i-svg-spinners:3-dots-rotate"></div>
     </template>
+    <div
+      flex="1 ~"
+      min-w-0
+      min-h-0
+      :class="[
+        reader
+          ? ''
+          : 'justify-center items-center'
+      ]"
+    >
+      <div
+        text-16
+        class="w-full h-full overflow-hidden"
+        :class="[
+          !displayText && 'flex items-center justify-center'
+        ]"
+      >
+        <!-- 排队加载 -->
+        <WaitTextRender
+          v-if="waitingForQueue && !displayText"
+        />
+        <template v-else>
+          <n-empty
+            v-if="!displayText"
+            size="large"
+            class="markdown-empty-state font-bold"
+          >
+            <div
+              whitespace-break-spaces
+              text-center
+              v-html="emptyPlaceholder"
+            ></div>
+            <template #icon>
+              <n-icon>
+                <div class="i-hugeicons:ai-chat-02"></div>
+              </n-icon>
+            </template>
+          </n-empty>
+          <div
+            v-else
+            ref="refWrapperContent"
+            text-16
+            class="markdown-content-scroller w-full h-full min-w-0 overflow-y-auto"
+            p-24px
+          >
+            <div
+              class="markdown-wrapper"
+              v-html="renderedContent"
+            ></div>
+          </div>
+        </template>
+      </div>
+    </div>
   </n-spin>
 </template>
 

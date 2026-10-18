@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import * as TransformUtils from '@/components/MarkdownPreview/transform'
 import { defaultModelName, modelMappingList } from '@/components/MarkdownPreview/models'
+import { log } from 'node:console'
 
 
 export interface BusinessState {

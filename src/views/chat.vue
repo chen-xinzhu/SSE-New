@@ -5,6 +5,11 @@ import { systemTitle } from '@/base'
 import { isGithubDeployed } from '@/config'
 import type { InputInst } from 'naive-ui'
 
+import { UAParser } from 'ua-parser-js'
+
+/**
+ * n-spin--loading
+ */
 const loading = ref(true)
 
 setTimeout(() => {
@@ -12,8 +17,9 @@ setTimeout(() => {
 }, 700)
 
 
-const stylizingLoading = ref(false)
-
+/**
+ * n-select--options
+ */
 const modelListSelections = computed(() => {
   return modelMappingList.map<SelectBaseOption>((modelItem) => {
     let disabled = false
@@ -30,7 +36,11 @@ const modelListSelections = computed(() => {
   })
 })
 
+
 const businessStore = useBusinessStore()
+
+
+const stylizingLoading = ref(false)
 
 /**
  * 输入字符串
@@ -77,7 +87,6 @@ const handleCreateStylized = async () => {
     return
   }
 
-
   if (refInputTextString.value && !inputTextString.value.trim()) {
     inputTextString.value = ''
     refInputTextString.value.focus()
@@ -105,6 +114,78 @@ const handleCreateStylized = async () => {
 }
 
 
+/**
+ * 按钮--快捷键判断
+ */
+const keys = useMagicKeys()
+const enterCommand = keys['Meta+Enter']
+const enterCtrl = keys['Ctrl+Enter']
+
+const activeElement = useActiveElement()
+const notUsingInput = computed(() => activeElement.value?.tagName !== 'TEXTAREA')
+//判断操作系统
+const parser = new UAParser()
+const isMacos = computed(() => {
+  const os = parser.getOS()
+  if (!os) return
+
+  const osName = os.name ?? ''
+  return osName
+    .toLocaleLowerCase()
+    .includes?.('macos')
+})
+// ctrl+enter, !是按下是true 抬起是fasle避免重复
+watch(
+  () => enterCommand.value,
+  () => {
+    if (!isMacos.value || notUsingInput.value) return
+
+    if (stylizingLoading.value) return
+
+    if (!enterCommand.value) {
+      handleCreateStylized()
+    }
+  },
+  {
+    deep: true
+  }
+)
+watch(
+  () => enterCtrl.value,
+  () => {
+    if (isMacos.value || notUsingInput.value) return
+
+    if (stylizingLoading.value) return
+
+    if (!enterCtrl.value) {
+      handleCreateStylized()
+    }
+  },
+  {
+    deep: true
+  }
+)
+
+
+/**
+ * 重置函数
+ */
+const handleResetState = () => {
+  inputTextString.value = ''
+
+  stylizingLoading.value = false
+  nextTick(() => {
+    refInputTextString.value?.focus()
+  })
+  refReaderMarkdownPreview.value?.abortReader()
+  refReaderMarkdownPreview.value?.resetStatus()
+}
+handleResetState()
+
+
+/**
+ * textarea占位符文本
+ */
 const placeholder = computed(() => {
   if (stylizingLoading.value) {
     return '正在生成回答...'
@@ -113,6 +194,9 @@ const placeholder = computed(() => {
 })
 
 
+/**
+ * 输入框上方提示文本列表
+ */
 const promptTextList = ref([
   '打个招呼吧，并告诉我你的名字',
   '使用中文，回答以下两个问题，分段表示\n1、你是什么模型？\n2、请分别使用 Vue3 和 React 编写一个 Button 组件，要求在 Vue3 中使用 Setup Composition API 语法糖，在 React 中使用 TSX 语法'
@@ -224,7 +308,8 @@ const PromptTag = defineComponent({
           content-class="chat-markdown-surface"
           :model="businessStore.currentModelItem?.modelName"
           :transform-stream-fn="businessStore.currentModelItem?.transformStreamValue"
-          :failed="onFailedReader"
+          @failed="onFailedReader"
+          @completed="onCompletedReader"
         />
       </main>
 
