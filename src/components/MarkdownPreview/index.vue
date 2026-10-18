@@ -54,7 +54,9 @@ const renderedContent = computed(() => {
 })
 
 
-// 接口响应是否正在排队等待
+/**
+ * 是否正在等待排队
+ */
 const waitingForQueue = ref(false)
 
 const WaitTextRender = defineComponent({
@@ -83,6 +85,22 @@ const WaitTextRender = defineComponent({
     }
   }
 })
+
+
+/**
+ * 终止
+ */
+const abortReader = () => {
+  if (props.reader) {
+    props.reader.cancel()
+  }
+  isAbort.value = true
+  readerLoading.value = false
+  waitingForQueue.value = false
+  isCompleted.value = false
+  displayText.value = ''
+  textBuffer.value = ''
+}
 
 
 /**
@@ -145,6 +163,13 @@ const emptyPlaceholder = computed(() => {
   return defaultMockModelName === props.model
     ? '当前为模拟环境\n随便问一个问题，我才会消失 ~'
     : '问一个问题，我才会消失 ~'
+})
+
+defineExpose({
+  abortReader,
+  resetStatus,
+  initializeStart,
+  initializeEnd
 })
 
 </script>
@@ -236,6 +261,21 @@ const emptyPlaceholder = computed(() => {
               class="markdown-wrapper"
               v-html="renderedContent"
             ></div>
+            <WaitTextRender
+              v-if="waitingForQueue"
+            />
+            <div
+              v-if="readerLoading"
+              class="markdown-stream-status"
+              aria-label="正在生成回答"
+              role="status"
+            >
+              <div
+                size-24
+                class="i-svg-spinners:pulse-3"
+                aria-hidden="true"
+              ></div>
+            </div>
           </div>
         </template>
       </div>
