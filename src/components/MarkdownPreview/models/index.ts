@@ -261,7 +261,7 @@ export const modelMappingList: TypesModelLLM[] = [
     },
     // Event Stream 调用 Google Gemini 接口 (通过 Vite Proxy 代理转发)
     chatFetch(text) {
-      const url = new URL(`${ location.origin }/gemini/chat/completions`)
+      const url = new URL(`${ location.origin }/gemini/v1beta/openai/chat/completions`)
 
       const req = new Request(url, {
         method: 'post',

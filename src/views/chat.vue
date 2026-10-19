@@ -79,11 +79,14 @@ const onCompletedReader = () => {
   triggerModelTermination()
 }
 
+let tempInputText = ''
 const handleCreateStylized = async () => {
+
   // 若正在加载，则点击后恢复初始状态
   if (stylizingLoading.value) {
     refReaderMarkdownPreview.value.abortReader()
     onCompletedReader()
+    inputTextString.value = tempInputText
     return
   }
 
@@ -98,6 +101,7 @@ const handleCreateStylized = async () => {
 
   stylizingLoading.value = true
   const textContent = inputTextString.value
+  tempInputText = inputTextString.value
   inputTextString.value = ''
   const { error, reader } = await businessStore.createAssistantWriterStylized({
     text: textContent

@@ -1,5 +1,5 @@
 <script setup lang="tsx">
-import { renderMarkdownText } from './plugins/markdown'
+import { renderMarkdownText, renderMermaidProcess } from './plugins/markdown'
 import type { CrossTransformFunction, TransformFunction } from './models'
 import { defaultMockModelName } from './models'
 
@@ -32,13 +32,13 @@ const isCompleted = ref(false)
 const emit = defineEmits([
   'failed',
   'completed',
-  'updated:reader'
+  'update:reader'
 ])
 
 
 const refWrapperContent = ref<HTMLElement>()
 
-const typingAnimationFrame: number | null = null
+let typingAnimationFrame: number | null = null
 
 
 /**
@@ -94,12 +94,181 @@ const abortReader = () => {
   if (props.reader) {
     props.reader.cancel()
   }
+
   isAbort.value = true
-  readerLoading.value = false
-  waitingForQueue.value = false
+  readIsOver.value = false
+  emit('update:reader', null)
+  initializeEnd()
+  isCompleted.value = true
+}
+
+
+/**
+ * 重置状态
+ */
+const resetStatus = () => {
+  isAbort.value = false
   isCompleted.value = false
+  readIsOver.value = false
+
+  emit('update:reader', null)
+
+  initializeEnd()
   displayText.value = ''
   textBuffer.value = ''
+  readerLoading.value = false
+  if (typingAnimationFrame) {
+    cancelAnimationFrame(typingAnimationFrame)
+    typingAnimationFrame = null
+  }
+}
+
+
+/**
+ * 重点
+ * 1.reader 读取是否结束
+ * 2.reader.read() 读取到内容存入 textBuffer中
+ */
+const readIsOver = ref(false)
+const readTextStream = async () => {
+  if (!props.reader) return
+
+  const textDecoder = new TextDecoder('utf-8')
+  readerLoading.value = true
+
+  while (true) {
+    if(isAbort.value) {
+      break
+    }
+    try {
+      if (!props.reader) {
+        readIsOver.value = true
+        break
+      }
+
+      const { value, done } = await props.reader.read()
+      if (!props.reader) {
+        readIsOver.value = true
+        break
+      }
+      if (done) {
+        readIsOver.value = true
+        break
+      }
+
+      const transformer = props.transformStreamFn as CrossTransformFunction
+      if(!transformer) {
+        break
+      }
+
+      const stream = transformer(value, textDecoder)
+      if (stream.done) {
+        readIsOver.value = true
+        break
+      }
+      if(stream.isWaitQueuing) {
+        waitingForQueue.value = stream.isWaitQueuing
+      }
+      if (stream.content) {
+        waitingForQueue.value = false
+        textBuffer.value += stream.content
+      }
+
+      if(typingAnimationFrame === null) {
+        showText()
+      }
+
+    } catch (error) {
+      readIsOver.value = true
+      emit('failed', error)
+      resetStatus()
+      break
+    } finally {
+      initializeEnd()
+    }
+  }
+}
+
+
+/**
+ * 重点
+ * 1.智能滚动, 支持生成时可以滚动
+ */
+const scrollToBottom = async () => {
+  await nextTick()
+  if (!refWrapperContent.value) return
+  // 当给了一个不合理的值, 会直接到达最底部
+  refWrapperContent.value.scrollTop = refWrapperContent.value.scrollHeight
+}
+const scrollToBottomByThreshold = async () => {
+  if (!refWrapperContent.value) return
+
+  const threshold = 100
+  const distanceToBottom = refWrapperContent.value.scrollHeight - refWrapperContent.value.scrollTop - refWrapperContent.value.clientHeight
+  if (distanceToBottom <= threshold) {
+    scrollToBottom()
+  }
+}
+const scrollToBottomIfAtBottom = async () => {
+  // TODO: 需要同时支持手动向上滚动
+  scrollToBottomByThreshold()
+}
+
+
+/**
+ * 重点
+ * 1.buffterText逐字追加到displayText
+ * 2.帧生成api
+ */
+const runReadBuffer = (readCallback = () => { }, endCallback = () => { }) => {
+  if(textBuffer.value.length > 0) {
+    const nextChunk = textBuffer.value.substring(0, 10)
+    displayText.value += nextChunk
+    textBuffer.value = textBuffer.value.substring(10)
+    readCallback()
+  } else {
+    endCallback()
+  }
+}
+
+const showText = () => {
+  if (isAbort.value && typingAnimationFrame) {
+    cancelAnimationFrame(typingAnimationFrame)
+    typingAnimationFrame = null
+    readerLoading.value = false
+    renderMermaidProcess(scrollToBottom)
+    return
+  }
+
+  if (!readIsOver.value) {
+    runReadBuffer()
+    renderMermaidProcess(scrollToBottom)
+    typingAnimationFrame = requestAnimationFrame(showText)
+  } else {
+    runReadBuffer(
+      () => {
+        renderMermaidProcess(scrollToBottom)
+        typingAnimationFrame = requestAnimationFrame(showText)
+      },
+      () => {
+        renderMermaidProcess(scrollToBottom)
+
+        window.$ModalNotification.success({
+          title: '生成完毕',
+          duration: 1500
+        })
+        emit('update:reader', null)
+        emit('completed')
+        readerLoading.value = false
+        isCompleted.value = true
+        nextTick(() => {
+          readIsOver.value = false
+        })
+        typingAnimationFrame = null
+      }
+    )
+  }
+  scrollToBottomIfAtBottom()
 }
 
 
@@ -163,6 +332,24 @@ const emptyPlaceholder = computed(() => {
   return defaultMockModelName === props.model
     ? '当前为模拟环境\n随便问一个问题，我才会消失 ~'
     : '问一个问题，我才会消失 ~'
+})
+
+
+watch(
+  () => props.reader,
+  () => {
+    if (props.reader) {
+      readTextStream()
+    }
+  },
+  {
+    immediate: true,
+    deep: true
+  }
+)
+
+onUnmounted(() => {
+  resetStatus()
 })
 
 defineExpose({

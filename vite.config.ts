@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         // 新增：Gemini 的 OpenAI 兼容接口代理
         '/gemini': {
-          target: 'https://generativelanguage.googleapis.com/v1beta/openai',
+          target: 'https://generativelanguage.googleapis.com',
           changeOrigin: true,
           rewrite: path => path.replace(/^\/gemini/, '')
         },
