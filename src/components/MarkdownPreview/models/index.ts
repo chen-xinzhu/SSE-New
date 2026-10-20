@@ -261,7 +261,7 @@ export const modelMappingList: TypesModelLLM[] = [
     },
     // Event Stream 调用 Google Gemini 接口 (通过 Vite Proxy 代理转发)
     chatFetch(text) {
-      const url = new URL(`${ location.origin }/gemini/v1beta/openai/chat/completions`)
+      const url = new URL('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions')
 
       const req = new Request(url, {
         method: 'post',
@@ -271,7 +271,7 @@ export const modelMappingList: TypesModelLLM[] = [
         },
         body: JSON.stringify({
           // 可选：'gemini-2.0-flash' 或 'gemini-1.5-flash'
-          model: 'gemini-2.0-flash',
+          model: 'gemini-3.8-flash',
           stream: true,
           messages: [
             {
@@ -281,6 +281,7 @@ export const modelMappingList: TypesModelLLM[] = [
           ]
         })
       })
+      console.log('我的Key是:', import.meta.env.VITE_GEMINI_KEY)
       return fetch(req)
     }
   },
