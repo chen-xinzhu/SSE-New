@@ -174,6 +174,7 @@ const readTextStream = async () => {
         textBuffer.value += stream.content
       }
 
+      //这是第一次启动
       if(typingAnimationFrame === null) {
         showText()
       }
@@ -218,7 +219,7 @@ const scrollToBottomIfAtBottom = async () => {
 /**
  * 重点
  * 1.buffterText逐字追加到displayText
- * 2.帧生成api
+ * 2.帧生成api, 打字动画
  */
 const runReadBuffer = (readCallback = () => { }, endCallback = () => { }) => {
   if(textBuffer.value.length > 0) {
@@ -243,9 +244,11 @@ const showText = () => {
   if (!readIsOver.value) {
     runReadBuffer()
     renderMermaidProcess(scrollToBottom)
+    //嵌套循环
     typingAnimationFrame = requestAnimationFrame(showText)
   } else {
     runReadBuffer(
+      //确认搬空textbuffter
       () => {
         renderMermaidProcess(scrollToBottom)
         typingAnimationFrame = requestAnimationFrame(showText)
